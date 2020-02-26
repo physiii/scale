@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "esp_wifi.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
@@ -41,16 +42,18 @@ send_state()
 }
 
 void
-send_log(cJSON * log)
+send_log(float value)
 {
-	char *str = cJSON_PrintUnformatted(log);
 	snprintf(wss_data_out,sizeof(wss_data_out),""
-	"{\"event_type\":\"log\","
-	" \"payload\":{\"services\":["
-	"{\"id\":\"scale_1\", \"type\":\"scale\","
-	"\"state\":%s"
-	"}]}}", str);
-	free(str);
+	"{\"event_type\":\"log\",\"payload\":"
+		"{\"service_id\":\"scale_1\", "
+		"\"type\":\"scale\", "
+		"\"description\":\"Weight recorded at %g lbs.\", "
+		"\"event\":\"weight\", "
+		"\"value\":%f}"
+	"}", floor(100*value)/100, value);
+
+	printf("wss_data_out: %s\n", wss_data_out);
 }
 
 int

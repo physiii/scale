@@ -51,7 +51,7 @@ void app_main(void)
 
   strcpy(device_id,get_char("device_id"));
   if (strcmp(device_id,"")==0) {
-    xTaskCreate(&websocket_utilities_task, "websocket_utilities_task", 10000, NULL, 5, NULL);
+    // xTaskCreate(&websocket_utilities_task, "websocket_utilities_task", 10000, NULL, 5, NULL);
   } else {
     printf("pulled device_id from storage: %s\n", device_id);
   }

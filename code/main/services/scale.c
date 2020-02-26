@@ -5,10 +5,8 @@ bool raising_temp = false;
 bool lowering_temp = false;
 bool tared = false;
 int TARE_COUNT = 6;
-int REPEAT_CNT = 12;
+int REPEAT_CNT = 16;
 float SCALE_THRESH = 1;
-
-
 float scale_bias = 36000;
 float SCALE_SLOPE = 4825;
 
@@ -69,6 +67,7 @@ void scale_task(void *pvParameters)
     int tare_count = 0;
     int repeat_cnt = 0;
     float sum = 0;
+    bool value_captured = false;
     // read from device
     while (1)
     {
@@ -95,20 +94,22 @@ void scale_task(void *pvParameters)
         sc.value = (sc.accumulator - scale_bias)/SCALE_SLOPE;
 
         if (sc.value > SCALE_THRESH) {
-          cJSON *number = cJSON_CreateNumber(sc.value);
-          cJSON_ReplaceItemInObjectCaseSensitive(state,"weight",number);
           if (fabs(sc.value - sc.prev_value) < sc.variance) {
             repeat_cnt++;
-            if (repeat_cnt > REPEAT_CNT) {
+            if (repeat_cnt > REPEAT_CNT && !value_captured) {
               printf("Log weight on server: %f\n", sc.value);
-              cJSON * log = cJSON_CreateObject();
-              cJSON_ReplaceItemInObjectCaseSensitive(log,"weight",number);
-              send_log(log);
+              // cJSON *log = cJSON_CreateObject();
+              // cJSON *number = cJSON_CreateNumber(sc.value);
+              // cJSON_AddItemToObject(log,"weight",number);
+              send_log(sc.value);
+              value_captured = true;
               repeat_cnt = 0;
             }
           } else {
             repeat_cnt = 0;
           }
+        } else {
+          value_captured = false;
         }
 
         if (!tared && tare_count >= TARE_COUNT) {
